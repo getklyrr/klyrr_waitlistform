@@ -1,17 +1,68 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-cream: #fbf5ee;
-  --color-burgundy: #6b1a2a;
-  --color-gold: #c9993a;
-  --color-deep-burg: #4a0f1c;
-  --color-warm-beige: #e2c9a8;
-  --color-dusty-pink: #c4788a;
+@layer base {
+  body {
+    background-color: #fbf5ee;
+  }
+}
+
+.bg-cream {
+  background-color: #fbf5ee;
+}
+
+.text-burgundy {
+  color: #6b1a2a;
+}
+
+.text-burgundy\/70 {
+  color: rgba(107, 26, 42, 0.7);
+}
+
+.text-burgundy\/60 {
+  color: rgba(107, 26, 42, 0.6);
+}
+
+.text-burgundy\/50 {
+  color: rgba(107, 26, 42, 0.5);
+}
+
+.text-burgundy\/30 {
+  color: rgba(107, 26, 42, 0.3);
+}
+
+.text-gold {
+  color: #c9993a;
+}
+
+.bg-burgundy {
+  background-color: #6b1a2a;
+}
+
+.text-cream {
+  color: #fbf5ee;
+}
+
+.border-burgundy\/10 {
+  border-color: rgba(107, 26, 42, 0.1);
+}
+
+.border-burgundy\/30 {
+  border-color: rgba(107, 26, 42, 0.3);
+}
+
+.border-gold\/30 {
+  border-color: rgba(201, 153, 58, 0.3);
+}
+
+.bg-white {
+  background-color: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
