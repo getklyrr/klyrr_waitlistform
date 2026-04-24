@@ -6,7 +6,7 @@ export default function HomePage() {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
     if (email.trim().length > 0) {
       setIsLoading(true);
@@ -33,9 +33,9 @@ export default function HomePage() {
   return (
     <main className="w-full min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center bg-cream">
 
-      {/* Eyebrow badge */}
+      {/* Badge */}
       <div className="inline-flex items-center gap-2 rounded-full border border-burgundy/30 px-4 py-2 mb-8">
-        <span className="w-2 h-2 rounded-full bg-gold inline-block flex-shrink-0" />
+        <span className="w-2 h-2 rounded-full bg-gold inline-block" />
         <span className="font-dm-sans text-xs uppercase tracking-widest text-burgundy font-medium">
           Now accepting beta applications
         </span>
@@ -71,7 +71,6 @@ export default function HomePage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit(e as unknown as React.FormEvent)}
               placeholder="you@university.edu"
               className="font-dm-sans w-full rounded-xl border-2 border-burgundy/10 bg-white px-5 py-4 text-burgundy placeholder:text-burgundy/30 focus:border-burgundy/30 focus:outline-none"
               disabled={isLoading}
