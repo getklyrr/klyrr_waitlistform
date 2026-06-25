@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 
-
 type DocStatus = "missing" | "uploaded" | "not_required";
 
 interface DocumentItem {
@@ -128,20 +127,20 @@ export default function DocumentsPage() {
             {expandedCategories.includes(category.title) && (
               <div className="divide-y divide-warm-beige/40">
                 {category.items.map((doc) => (
-                  <div key={doc.id} className="p-4 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 flex-1">
-                      {getStatusIcon(doc.status)}
-                      <span className={`text-sm ${doc.status === "not_required" ? "text-burgundy/40 line-through" : "text-burgundy"}`}>
-                        {doc.name}
+                  <div key={doc.id} className="p-4 flex items-center justify-between gap-4 w-full">
+                    <div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
+                      <div className="flex-shrink-0 mt-0.5">{getStatusIcon(doc.status)}</div>
+                      <span className={`text-sm break-words flex-1 min-w-0 ${doc.status === "not_required" ? "text-burgundy/40 line-through" : "text-burgundy"}`}>
+                        {doc.name || '\u00A0'}
                       </span>
                     </div>
                     {doc.status === "missing" && (
-                      <button className="flex items-center gap-1.5 px-3 py-1.5 bg-burgundy/5 text-burgundy rounded-lg text-xs font-semibold hover:bg-burgundy/10 transition-colors">
+                      <button className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-burgundy/5 text-burgundy rounded-lg text-xs font-semibold hover:bg-burgundy/10 transition-colors">
                         <UploadCloud size={14} /> Upload
                       </button>
                     )}
                     {doc.status === "uploaded" && (
-                      <button className="flex items-center gap-1.5 px-3 py-1.5 bg-warm-beige/20 text-burgundy rounded-lg text-xs font-semibold hover:bg-warm-beige/40 transition-colors">
+                      <button className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-warm-beige/20 text-burgundy rounded-lg text-xs font-semibold hover:bg-warm-beige/40 transition-colors">
                         <FileText size={14} /> View
                       </button>
                     )}
@@ -152,7 +151,7 @@ export default function DocumentsPage() {
           </div>
         ))}
       </div>
-        <BottomNav/>
+      <BottomNav />
     </div>
   );
 }
