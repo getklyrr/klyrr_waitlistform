@@ -346,6 +346,7 @@ export default function CompetitionsPage() {
 }
 
 // ── Card Component ────────────────────────────────────────────────────────────
+// ── Card Component ────────────────────────────────────────────────────────────
 function CompCard({ comp, saved, onSave, featured }: {
   comp: Competition;
   saved: boolean;
@@ -360,24 +361,25 @@ function CompCard({ comp, saved, onSave, featured }: {
     }`}>
       {featured && (
         <div className="px-4 py-1.5 flex items-center gap-1.5" style={{ background: "linear-gradient(90deg, #4A1525, #6b1a35)" }}>
-          <Award size={11} color="#B48C3C" />
-          <span className="text-[10px] font-bold text-[#B48C3C] uppercase tracking-widest">Featured</span>
+          <Award size={11} color="#B48C3C" className="flex-shrink-0" />
+          <span className="text-[10px] font-bold text-[#B48C3C] uppercase tracking-widest truncate">Featured</span>
         </div>
       )}
 
       <div className="p-4">
         {/* Top Row */}
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-start justify-between gap-3 mb-3 w-full">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 w-full">
               {comp.global && (
                 <Globe size={11} className="flex-shrink-0 text-[#B48C3C]" />
               )}
-              <h3 className="text-[#4A1525] font-bold text-sm leading-tight truncate" style={{ fontFamily: "'Playfair Display', serif" }}>
-                {comp.name}
+              {/* Added min-w-0 and strict fallbacks for missing names */}
+              <h3 className="text-[#4A1525] font-bold text-sm leading-tight truncate flex-1 min-w-0" style={{ fontFamily: "'Playfair Display', serif" }}>
+                {comp.name || '\u00A0'}
               </h3>
             </div>
-            <p className="text-xs text-[#4A1525]/50">{comp.organizer}</p>
+            <p className="text-xs text-[#4A1525]/50 truncate w-full">{comp.organizer || '\u00A0'}</p>
           </div>
           <button
             onClick={onSave}
@@ -396,91 +398,101 @@ function CompCard({ comp, saved, onSave, featured }: {
 
         {/* Badges */}
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${LEVEL_COLORS[comp.level]}`}>
-            {comp.level}
-          </span>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${MODE_COLORS[comp.mode]}`}>
-            {comp.mode}
-          </span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full border bg-[#F9F6F0] text-[#4A1525]/60 border-[#E8DCC4]">
-            {comp.category}
-          </span>
+          {comp.level && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${LEVEL_COLORS[comp.level]}`}>
+              {comp.level}
+            </span>
+          )}
+          {comp.mode && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${MODE_COLORS[comp.mode]}`}>
+              {comp.mode}
+            </span>
+          )}
+          {comp.category && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full border bg-[#F9F6F0] text-[#4A1525]/60 border-[#E8DCC4]">
+              {comp.category}
+            </span>
+          )}
         </div>
 
         {/* Info Grid */}
         <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <Clock size={11} className="text-[#4A1525]/40 flex-shrink-0" />
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Deadline</div>
-              <div className="text-xs font-semibold text-[#4A1525]">{comp.deadline}</div>
+              <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.deadline || '\u00A0'}</div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <Calendar size={11} className="text-[#4A1525]/40 flex-shrink-0" />
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Event</div>
-              <div className="text-xs font-semibold text-[#4A1525]">{comp.eventDate}</div>
+              <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.eventDate || '\u00A0'}</div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <Trophy size={11} className="text-[#B48C3C] flex-shrink-0" />
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Prize</div>
-              <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.prize}</div>
+              <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.prize || '\u00A0'}</div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <Users size={11} className="text-[#4A1525]/40 flex-shrink-0" />
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Team</div>
-              <div className="text-xs font-semibold text-[#4A1525]">{comp.teamSize}</div>
+              <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.teamSize || '\u00A0'}</div>
             </div>
           </div>
         </div>
 
         {/* Location */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <MapPin size={11} className="text-[#4A1525]/40" />
-          <span className="text-xs text-[#4A1525]/60">{comp.location}</span>
+        <div className="flex items-center gap-1.5 mb-3 min-w-0">
+          <MapPin size={11} className="text-[#4A1525]/40 flex-shrink-0" />
+          <span className="text-xs text-[#4A1525]/60 truncate">{comp.location || '\u00A0'}</span>
         </div>
 
         {/* Description (expandable) */}
-        <div className="mb-3">
-          <p className={`text-xs text-[#4A1525]/60 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>
-            {comp.description}
-          </p>
-          {comp.description.length > 100 && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="text-[11px] font-semibold mt-1"
-              style={{ color: "#B48C3C" }}
-            >
-              {expanded ? "Show less" : "Read more"}
-            </button>
-          )}
-        </div>
+        {comp.description && (
+          <div className="mb-3">
+            <p className={`text-xs text-[#4A1525]/60 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>
+              {comp.description}
+            </p>
+            {comp.description.length > 100 && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="text-[11px] font-semibold mt-1"
+                style={{ color: "#B48C3C" }}
+              >
+                {expanded ? "Show less" : "Read more"}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {comp.tags.map(tag => (
-            <span key={tag} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[#4A1525]/5 text-[#4A1525]/60">
-              <Tag size={8} /> {tag}
+          {(comp.tags || []).map(tag => (
+            <span key={tag} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[#4A1525]/5 text-[#4A1525]/60 max-w-full truncate">
+              <Tag size={8} className="flex-shrink-0" /> <span className="truncate">{tag}</span>
             </span>
           ))}
         </div>
 
         {/* CTA */}
-        <a
-          href={comp.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
-          style={{ background: "#4A1525", color: "white" }}
-        >
-          Apply Now <ExternalLink size={12} />
-        </a>
+        {comp.url && (
+          <a
+            href={comp.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
+            style={{ background: "#4A1525", color: "white" }}
+          >
+            Apply Now <ExternalLink size={12} />
+          </a>
+        )}
       </div>
     </div>
   );
-}
+}  
