@@ -1,111 +1,88 @@
-"use client";
-import { useState } from "react";
+import Link from 'next/link';
 
-export default function HomePage() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
-    e.preventDefault();
-    if (email.trim().length > 0) {
-      setIsLoading(true);
-      const formId = "1FAIpQLSdsq0mcQo3vfH_eN7YG4Vc0EgnnBbf4NVjNLgwJUzQJTMQqvw";
-      const emailFieldId = "entry.795318874";
-      try {
-        const formData = new FormData();
-        formData.append(emailFieldId, email);
-        await fetch(`https://docs.google.com/forms/d/e/${formId}/formResponse`, {
-          method: "POST",
-          body: formData,
-          mode: "no-cors",
-        });
-        setSubmitted(true);
-      } catch (error) {
-        console.error("Error:", error);
-        setSubmitted(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
+export default function Home() {
   return (
-    <main className="w-full min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center bg-cream">
-
-      {/* Badge */}
-      <div className="inline-flex items-center gap-2 rounded-full border border-burgundy/30 px-4 py-2 mb-8">
-        <span className="w-2 h-2 rounded-full bg-gold inline-block" />
-        <span className="font-dm-sans text-xs uppercase tracking-widest text-burgundy font-medium">
-          Now accepting beta applications
-        </span>
+    <section style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      textAlign: 'center',
+      padding: '40px 20px',
+      backgroundColor: '#F9F6F0',
+      fontFamily: "'Plus Jakarta Sans', sans-serif"
+    }}>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        backgroundColor: '#F0EAE1',
+        border: '1px solid #E6DCD0',
+        padding: '8px 16px',
+        borderRadius: '20px',
+        fontSize: '11px',
+        fontWeight: 700,
+        letterSpacing: '1px',
+        textTransform: 'uppercase',
+        color: '#3F1522',
+        marginBottom: '24px'
+      }}>
+        ✨ Klyrr Opportunities
       </div>
 
-      {/* Headline */}
-      <h1 className="font-cormorant mx-auto max-w-4xl text-burgundy text-5xl sm:text-7xl mb-6 leading-tight">
-        Built for the student <br className="hidden sm:block" />
-        <span className="text-gold italic">nobody built for.</span>
+      <h1 style={{
+        fontFamily: "'Playfair Display', serif",
+        fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
+        fontWeight: 700,
+        lineHeight: 1.15,
+        color: '#3F1522',
+        marginBottom: '8px'
+      }}>
+        Build your profile.
+        <span style={{ color: '#C09E53', display: 'block' }}>Track your growth.</span>
       </h1>
 
-      {/* Subtext */}
-      <p className="font-dm-sans mx-auto max-w-xl text-burgundy/70 text-lg sm:text-xl mb-10">
-        Your AI-powered study abroad companion. Get personalized university
-        matches, craft the perfect application, and secure your future.
+      <p style={{
+        fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
+        color: '#7E6E65',
+        maxWidth: '600px',
+        lineHeight: 1.6,
+        margin: '16px auto 32px auto'
+      }}>
+        Discover prestigious hackathons, track your coding consistency, and build a portfolio that stands out to top universities and recruiters.
       </p>
 
-      {/* Form / Success Card */}
-      <div className="w-full max-w-md mx-auto min-h-40">
-        {submitted ? (
-          <div className="flex flex-col items-center gap-2 rounded-2xl border border-gold/30 bg-cream p-8">
-            <span className="font-cormorant text-3xl text-gold italic">
-              You&apos;re on the list.
-            </span>
-            <p className="font-dm-sans text-burgundy/70">
-              We&apos;ll reach out when your spot opens up.
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4 w-full">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@university.edu"
-              className="font-dm-sans w-full rounded-xl border-2 border-burgundy/10 bg-white px-5 py-4 text-burgundy placeholder:text-burgundy/30 focus:border-burgundy/30 focus:outline-none"
-              disabled={isLoading}
-            />
-            <button
-              onClick={handleSubmit}
-              className="font-dm-sans w-full rounded-xl bg-burgundy px-7 py-4 text-cream font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
-              disabled={isLoading}
-            >
-              {isLoading ? "Joining..." : "Join Waitlist"}
-            </button>
-            <p className="font-dm-sans mt-2 text-center text-xs text-burgundy/50">
-              Spots are extremely limited for the beta.
-            </p>
-          </div>
-        )}
-      </div>
+      <Link href="/hackathons" style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '10px',
+        backgroundColor: '#3F1522',
+        color: '#FFFFFF',
+        padding: '16px 32px',
+        borderRadius: '12px',
+        fontSize: '15px',
+        fontWeight: 600,
+        textDecoration: 'none',
+        boxShadow: '0 4px 15px rgba(63, 21, 34, 0.25)',
+        transition: 'transform 0.2s, opacity 0.2s'
+      }}>
+        Open Dashboard →
+      </Link>
 
-      {/* Stats */}
-      <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
-        {[
-          { num: "500+", label: "Students Waitlisted" },
-          { num: "40+", label: "Countries Covered" },
-          { num: "1,200+", label: "Universities Mapped" },
-        ].map(({ num, label }) => (
-          <div key={label} className="flex flex-col items-center gap-1">
-            <span className="font-cormorant text-gold text-4xl font-bold">
-              {num}
-            </span>
-            <span className="font-dm-sans text-xs text-burgundy/60 uppercase tracking-widest">
-              {label}
-            </span>
-          </div>
-        ))}
+      <div style={{
+        display: 'flex',
+        gap: '24px',
+        marginTop: '60px',
+        fontSize: '13px',
+        fontWeight: 500,
+        color: '#7E6E65'
+      }}>
+        <span>🏆 Global Hackathons</span>
+        <span>💻 Activity Tracking</span>
       </div>
-    </main>
+    </section>
   );
 }
