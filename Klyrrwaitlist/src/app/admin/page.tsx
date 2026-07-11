@@ -135,7 +135,7 @@ export default function AdminPage() {
   }
 
   if (checkingSession) {
-    return <div style={styles.centerScreen}>Loading\u2026</div>;
+    return <div style={styles.centerScreen}>Loading…</div>;
   }
 
   if (!authed) {
@@ -181,7 +181,7 @@ export default function AdminPage() {
           disabled={parsing || rawText.trim().length === 0}
           style={styles.primaryBtn}
         >
-          {parsing ? "Parsing\u2026" : "Parse with AI"}
+          {parsing ? "Parsing…" : "Parse with AI"}
         </button>
         {parseError && <div style={styles.errorText}>{parseError}</div>}
       </section>
@@ -227,7 +227,7 @@ export default function AdminPage() {
           </div>
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={handlePublish} disabled={publishing} style={styles.primaryBtn}>
-              {publishing ? "Publishing\u2026" : "Publish to klyrr.qzz.io/competitions"}
+              {publishing ? "Publishing…" : "Publish to klyrr.qzz.io/competitions"}
             </button>
             <button onClick={() => setDraft(null)} style={styles.secondaryBtn}>Discard</button>
           </div>
@@ -238,7 +238,7 @@ export default function AdminPage() {
       <section style={styles.card}>
         <h2 style={styles.sectionTitle}>Live listings ({items.length})</h2>
         {loadingItems ? (
-          <p>Loading</p>
+          <p>Loading…</p>
         ) : items.length === 0 ? (
           <p style={{ color: "#7E6E65" }}>Nothing published yet.</p>
         ) : (
