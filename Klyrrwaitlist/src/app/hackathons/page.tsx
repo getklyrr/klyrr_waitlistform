@@ -1,244 +1,248 @@
-import { MongoClient } from "mongodb";
+'use client';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-// ── Inline Vector Asset Pipeline (Zero External Package Dependency) ───────────
-const GlobeIcon = () => (
-  <svg className="flex-shrink-0 text-[#B48C3C]" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-);
-const AwardIcon = () => (
-  <svg className="flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#B48C3C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-);
-const BookmarkIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4A1525" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-);
-const ClockIcon = () => (
-  <svg className="text-[#4A1525]/40 flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-);
-const CalendarIcon = () => (
-  <svg className="text-[#4A1525]/40 flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-);
-const TrophyIcon = () => (
-  <svg className="text-[#B48C3C] flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"/><path d="M12 2a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6z"/></svg>
-);
-const UsersIcon = () => (
-  <svg className="text-[#4A1525]/40 flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-);
-const MapPinIcon = () => (
-  <svg className="text-[#4A1525]/40 flex-shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-);
-const TagIcon = () => (
-  <svg className="flex-shrink-0" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-);
-const ExternalLinkIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-);
-
-// ── Strict Color Badging Configurations ──────────────────────────────────────
-const LEVEL_COLORS: Record<string, string> = {
-  Global: "bg-purple-50 text-purple-700 border-purple-200",
-  National: "bg-blue-50 text-blue-700 border-blue-200",
-  Regional: "bg-green-50 text-green-700 border-green-200",
-};
-
-const MODE_COLORS: Record<string, string> = {
-  Online: "bg-cyan-50 text-cyan-700 border-cyan-200",
-  "In-Person": "bg-amber-50 text-amber-700 border-amber-200",
-  Hybrid: "bg-indigo-50 text-indigo-700 border-indigo-200",
-};
-
-// ── Database Layer ────────────────────────────────────────────────────────────
-async function fetchHackathons() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) return [];
-  const client = new MongoClient(uri);
-  try {
-    await client.connect();
-    const db = client.db("hackathon_platform");
-    const rawData = await db.collection("listings").find({}).toArray();
-    
-    // Strict, safe mapping with zero compromise on fallbacks if data is missing
-    return rawData.map((doc) => ({
-      id: doc._id.toString(),
-      name: doc.name || doc.title || "",
-      organizer: doc.organizer || "",
-      category: doc.category || "",
-      deadline: doc.deadline || "",
-      eventDate: doc.eventDate || doc.date || "",
-      prize: doc.prize || doc.prize_pool || "",
-      level: doc.level || "",
-      mode: doc.mode || "",
-      teamSize: doc.teamSize || "",
-      location: doc.location || "",
-      description: doc.description || "",
-      tags: Array.isArray(doc.tags) ? doc.tags : [],
-      global: doc.global === true || String(doc.level).toLowerCase() === "global",
-      featured: doc.featured === true,
-      url: doc.url || doc.link || "",
-    }));
-  } catch (error) {
-    console.error("Database error:", error);
-    return [];
-  } finally {
-    await client.close();
+// --- LOCAL DATABASE HELPER ---
+const DB_KEY = 'klyrr_competitions';
+function getDB(): any[] {
+  if (typeof window === 'undefined') return [];
+  const data = localStorage.getItem(DB_KEY);
+  if (!data) {
+    const seed = [
+      { id: 1, status: 'approved', featured: true, title: 'Flipkart GRiD 6.0', organizer: 'Flipkart', tags: ['advanced', 'hybrid', 'coding'], deadline: 'Jun 30, 2025', timeline: 'Aug–Sep 2025', prize: '₹5,00,000 + PPO offers', teamSize: '2–3 members', location: 'Bangalore (Finals)', description: 'E-commerce and technology challenge by Flipkart. Shortlisted teams get pre-placement interview opportunities.', applyUrl: '#', metaTags: ['E-commerce', 'PPO'] },
+      { id: 2, status: 'approved', featured: true, title: 'NASA Space Apps Challenge', organizer: 'NASA', tags: ['open', 'hybrid', 'science'], deadline: 'Oct 4, 2025', timeline: 'Oct 2025', prize: 'Global Recognition', teamSize: 'Up to 5', location: 'Global', description: "NASA's flagship international hackathon tackling real-world challenges on Earth and in space.", applyUrl: '#', metaTags: ['Space', 'Global'] }
+    ];
+    localStorage.setItem(DB_KEY, JSON.stringify(seed));
+    return seed;
   }
+  return JSON.parse(data);
+}
+function saveDB(data: any[]) { if (typeof window !== 'undefined') localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+
+// --- LOCAL PARSER ---
+function localParser(text: string) {
+  const r: any = { title: '', organizer: '', deadline: '', prize: '', location: '', applyUrl: '', description: '', tags: [], timeline: '', teamSize: '' };
+  const urlM = text.match(/https?:\/\/[^\s<>"{}|\\^`\]]+/); if (urlM) r.applyUrl = urlM[0];
+  const boldM = text.match(/\*([^*]+)\*/); if (boldM) r.title = boldM[1].replace(/[🔥💰📅📍🔗💻🏆⚡🎯📋🚀]/g, '').trim();
+  const prizeM = text.match(/[💰🏆].*?[:\-]\s*(.+?)[\n|$]/i) || text.match(/prize[:\-]\s*(.+?)[\n|$]/i); if (prizeM) r.prize = prizeM[1].trim();
+  const dateM = text.match(/(\d{1,2})\s*(st|nd|rd|th)?\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[,]?\s*(\d{4})/i);
+  if (dateM) r.deadline = dateM[3].charAt(0).toUpperCase() + dateM[3].slice(1,3) + ' ' + dateM[1] + ', ' + dateM[4];
+  const locM = text.match(/[📍].*?[:\-]\s*(.+?)[\n|$]/i); if (locM) r.location = locM[1].trim();
+  const lower = text.toLowerCase();
+  if (lower.match(/cod|programm|hackathon/)) r.tags.push('coding');
+  if (lower.match(/design|ui|ux/)) r.tags.push('design');
+  if (lower.match(/science|nasa|space/)) r.tags.push('science');
+  if (lower.match(/business|startup/)) r.tags.push('business');
+  if (lower.match(/online|virtual/)) r.tags.push('online');
+  if (lower.match(/hybrid/)) r.tags.push('hybrid');
+  if (lower.match(/advanced/)) r.tags.push('advanced');
+  if (lower.match(/beginner|open/)) r.tags.push('beginner');
+  if (r.tags.length === 0) r.tags = ['coding', 'open'];
+  if (!r.title) r.title = 'Untitled Competition';
+  r.description = r.title + (r.prize ? ` — Prize: ${r.prize}.` : '');
+  return r;
 }
 
-// ── Main Page Template ────────────────────────────────────────────────────────
-export default async function HackathonsPage() {
-  const hackathons = await fetchHackathons();
+export default function Hackathons() {
+  const [db, setDb] = useState<any[]>([]);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [password, setPassword] = useState('');
+  
+  // Extracted form state
+  const [whatsappInput, setWhatsappInput] = useState('');
+  const [exData, setExData] = useState<any>(null);
+  const [adminTab, setAdminTab] = useState('paste');
+
+  useEffect(() => { setDb(getDB()); }, []);
+
+  const approved = db.filter(c => c.status === 'approved');
+  let filtered = filter === 'all' ? approved : approved.filter(c => c.tags.includes(filter));
+  if (search) {
+    const q = search.toLowerCase();
+    filtered = filtered.filter(c => c.title.toLowerCase().includes(q) || c.organizer.toLowerCase().includes(q) || c.tags.some((t: string) => t.includes(q)));
+  }
+  filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+
+  const handleExtract = () => {
+    if (!whatsappInput.trim()) return alert('Paste a message first!');
+    const extracted = localParser(whatsappInput);
+    setExData(extracted);
+  };
+
+  const handleAddToQueue = () => {
+    const newItem = { id: Date.now(), status: 'pending', featured: exData.featured || false, title: exData.title, organizer: exData.organizer, tags: exData.tags, deadline: exData.deadline, timeline: exData.timeline, prize: exData.prize, teamSize: exData.teamSize, location: exData.location, applyUrl: exData.applyUrl, description: exData.description, metaTags: [] };
+    const newDb = [...db, newItem];
+    saveDB(newDb); setDb(newDb); setWhatsappInput(''); setExData(null); alert('Added to review queue!');
+  };
+
+  const handleApprove = (id: number) => {
+    const newDb = db.map(c => c.id === id ? { ...c, status: 'approved' } : c);
+    saveDB(newDb); setDb(newDb);
+  };
+
+  const handleReject = (id: number) => {
+    const newDb = db.filter(c => c.id !== id);
+    saveDB(newDb); setDb(newDb);
+  };
+
+  const tagStyles: any = { coding: { bg: '#F5EFE6', color: '#8A7E72' }, advanced: { bg: '#FFE5E5', color: '#FF5C5C' }, hybrid: { bg: '#EAE5FF', color: '#7C5CFF' }, open: { bg: '#E2F5EA', color: '#27AE60' }, science: { bg: '#F5EFE6', color: '#8A7E72' }, design: { bg: '#FFF5E5', color: '#D4850A' }, business: { bg: '#E5F0FF', color: '#1B6BFF' }, beginner: { bg: '#E8F5E9', color: '#2E7D32' }, online: { bg: '#E5F9FF', color: '#00A5C8' } };
 
   return (
-    <main className="w-full min-h-screen bg-[#fbf5ee] px-4 py-8 md:px-8 md:py-12">
-      <div className="max-w-6xl mx-auto">
-        
-        {/* Page Top branding layout */}
-        <div className="mb-10 md:mb-14 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#6b1a2a]/30 px-4 py-1.5 mb-4 bg-white/50">
-            <span className="w-2 h-2 rounded-full bg-[#c9993a] inline-block" />
-            <span className="text-[10px] sm:text-xs uppercase tracking-widest text-[#6b1a2a] font-medium font-sans">
-              Live Database Feed
-            </span>
+    <div style={{ background: '#F9F6F0', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#3F1522' }}>
+      {/* HEADER */}
+      <header style={{ backgroundColor: '#4A1525', color: '#FFF', padding: '40px 40px 30px' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+              <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>✨ Klyrr</Link>
+              <span>×</span>
+              <span style={{ color: '#C09E53' }}>Opportunities</span>
+            </div>
+            <Link href="/" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>← Back</Link>
           </div>
-          <h1 className="text-[#6b1a2a] text-4xl sm:text-6xl font-bold mb-4 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Active Teen <span className="text-[#c9993a] italic">Hackathons</span>
-          </h1>
-          <p className="text-[#6b1a2a]/70 text-base sm:text-lg max-w-xl font-sans">
-            Hand-picked competitions and production-ready hackathons for builders aged 13–18.
-          </p>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, marginBottom: 4 }}>Competitions & Hackathons</h2>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 24 }}>{filtered.length} opportunities · Local & Global</p>
+          
+          <div style={{ position: 'relative', marginBottom: 20 }}>
+            <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }}>🔍</span>
+            <input type="text" placeholder="Search competitions, skills, or organizers..." value={search} onChange={(e) => setSearch(e.target.value)}
+              style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '14px 16px 14px 44px', color: '#FFF', fontSize: 14, outline: 'none' }} />
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {['all', 'coding', 'design', 'science', 'business'].map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: filter === f ? '#C09E53' : 'rgba(255,255,255,0.06)', border: `1px solid ${filter === f ? '#C09E53' : 'rgba(255,255,255,0.1)'}`, color: filter === f ? '#3F1522' : 'rgba(255,255,255,0.8)', padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: filter === f ? 700 : 500, cursor: 'pointer' }}>
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
+      </header>
 
-        {/* Competitions Cards Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full">
-          {hackathons.map((comp) => (
-            <div 
-              key={comp.id} 
-              className={`bg-white rounded-2xl border overflow-hidden transition-all flex flex-col justify-between shadow-sm h-full ${
-                comp.featured ? "border-[#B48C3C]/40 shadow-md" : "border-[#E8DCC4]"
-              }`}
-            >
-              <div>
-                {/* Featured Header Badge Bar */}
-                {comp.featured && (
-                  <div className="px-4 py-1.5 flex items-center gap-1.5" style={{ background: "linear-gradient(90deg, #4A1525, #6b1a35)" }}>
-                    <AwardIcon />
-                    <span className="text-[10px] font-bold text-[#B48C3C] uppercase tracking-widest truncate">Featured</span>
-                  </div>
-                )}
+      {/* CARDS */}
+      <main style={{ maxWidth: 1400, margin: '24px auto', padding: '0 20px' }}>
+        {filtered.map(c => (
+          <div key={c.id} style={{ backgroundColor: '#FFF', borderRadius: 16, border: '1px solid #E6E1DA', marginBottom: 24, overflow: 'hidden' }}>
+            {c.featured && <div style={{ backgroundColor: '#3F1522', color: '#C09E53', fontSize: 10, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', padding: '8px 20px' }}>📌 Featured</div>}
+            <div style={{ padding: '24px 24px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div>
+                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700 }}>{c.title}</h3>
+                  <p style={{ fontSize: 13, color: '#7E6E65', marginTop: 4, marginBottom: 12 }}>{c.organizer}</p>
+                </div>
+                <button style={{ background: 'none', border: '1px solid #E6E1DA', borderRadius: 8, width: 36, height: 36, cursor: 'pointer', fontSize: 13 }}>🔖</button>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                {c.tags.map((t: string) => <span key={t} style={{ fontSize: 11, fontWeight: 600, padding: '4px 12px', borderRadius: 20, backgroundColor: tagStyles[t]?.bg || '#F3EFF6', color: tagStyles[t]?.color || '#8A7E8C' }}>{t.charAt(0).toUpperCase() + t.slice(1)}</span>)}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 20, marginBottom: 24 }}>
+                <div><div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'rgba(63,21,34,0.4)', marginBottom: 2 }}>Deadline</div><div style={{ fontSize: 14, fontWeight: 700 }}>{c.deadline || 'TBD'}</div></div>
+                <div><div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'rgba(63,21,34,0.4)', marginBottom: 2 }}>Event</div><div style={{ fontSize: 14, fontWeight: 700 }}>{c.timeline || 'TBD'}</div></div>
+                <div><div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'rgba(63,21,34,0.4)', marginBottom: 2 }}>Prize</div><div style={{ fontSize: 14, fontWeight: 700 }}>{c.prize || 'TBD'}</div></div>
+                <div><div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'rgba(63,21,34,0.4)', marginBottom: 2 }}>Team</div><div style={{ fontSize: 14, fontWeight: 700 }}>{c.teamSize || 'TBD'}</div></div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#A08E84', marginBottom: 16 }}>📍 {c.location || 'Online'}</div>
+              <p style={{ fontSize: 13, color: '#7E6E65', lineHeight: 1.6, marginBottom: 8 }}>{c.description}</p>
+            </div>
+            <div style={{ padding: '0 16px 16px' }}>
+              <a href={c.applyUrl || '#'} target="_blank" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#3F1522', color: '#FFF', width: '100%', padding: 14, borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+                Apply Now ↗
+              </a>
+            </div>
+          </div>
+        ))}
+      </main>
 
-                <div className="p-4">
-                  {/* Title & Action Container */}
-                  <div className="flex items-start justify-between gap-3 mb-3 w-full">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 w-full">
-                        {comp.global && <GlobeIcon />}
-                        <h3 className="text-[#4A1525] font-bold text-sm leading-tight truncate flex-1 min-w-0" style={{ fontFamily: "'Playfair Display', serif" }}>
-                          {comp.name || '\u00A0'}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-[#4A1525]/50 truncate w-full">{comp.organizer || '\u00A0'}</p>
-                    </div>
-                    <button className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border border-[#E8DCC4] bg-transparent">
-                      <BookmarkIcon />
-                    </button>
-                  </div>
+      {/* ADMIN TRIGGER */}
+      <div style={{ textAlign: 'center', padding: '40px 20px', borderTop: '1px solid #E6E1DA' }}>
+        <button onClick={() => setShowAdmin(true)} style={{ background: 'none', border: 'none', color: '#D0C8C0', cursor: 'pointer', fontSize: 14 }}>🔒</button>
+      </div>
 
-                  {/* Flexible Dynamic Badges Row */}
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {comp.level && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${LEVEL_COLORS[comp.level] || "border-[#E8DCC4]"}`}>
-                        {comp.level}
-                      </span>
-                    )}
-                    {comp.mode && (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${MODE_COLORS[comp.mode] || "border-[#E8DCC4]"}`}>
-                        {comp.mode}
-                      </span>
-                    )}
-                    {comp.category && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full border bg-[#F9F6F0] text-[#4A1525]/60 border-[#E8DCC4]">
-                        {comp.category}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Grid Informational Matrix (Guaranteed Not To Overlap on Mobile) */}
-                  <div className="grid grid-cols-2 gap-2 mb-3 w-full">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <ClockIcon />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Deadline</div>
-                        <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.deadline || '\u00A0'}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <CalendarIcon />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Event</div>
-                        <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.eventDate || '\u00A0'}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <TrophyIcon />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Prize</div>
-                        <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.prize || '\u00A0'}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <UsersIcon />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[9px] text-[#4A1525]/40 uppercase tracking-wide">Team</div>
-                        <div className="text-xs font-semibold text-[#4A1525] truncate">{comp.teamSize || '\u00A0'}</div>
-                      </div>
-                    </div>
+      {/* ADMIN MODAL */}
+      {showAdmin && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#FFF', borderRadius: 16, width: '90%', maxWidth: 800, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: '#3F1522', color: '#FFF', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', borderRadius: '16px 16px 0 0' }}>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20 }}>🛡️ Admin Panel</h2>
+              <button onClick={() => setShowAdmin(false)} style={{ background: 'none', border: 'none', color: '#FFF', fontSize: 20, cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ padding: 24 }}>
+              {!isAdmin ? (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <p style={{ marginBottom: 16, color: '#7E6E65' }}>Enter admin password to continue</p>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" style={{ border: '1px solid #E6E1DA', borderRadius: 8, padding: '10px 12px', fontSize: 14, outline: 'none', maxWidth: 300, width: '100%' }} />
+                  <button onClick={() => password === 'klyrr2025' ? setIsAdmin(true) : alert('Wrong password!')} style={{ background: '#3F1522', color: '#FFF', border: 'none', padding: '12px 24px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', marginTop: 12, display: 'block', maxWidth: 300, width: '100%', margin: '12px auto 0' }}>Login →</button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', gap: 12, borderBottom: '1px solid #E6E1DA', marginBottom: 24 }}>
+                    {['paste', 'pending', 'manage'].map(t => <button key={t} onClick={() => setAdminTab(t)} style={{ padding: '8px 0', fontWeight: 600, fontSize: 14, border: 'none', background: 'none', color: adminTab === t ? '#3F1522' : '#7E6E65', cursor: 'pointer', borderBottom: adminTab === t ? '2px solid #C09E53' : '2px solid transparent' }}>{t === 'paste' ? 'Paste & Extract' : t === 'pending' ? `Review Queue (${db.filter(c => c.status === 'pending').length})` : 'Manage Live'}</button>)}
                   </div>
 
-                  {/* Location Area */}
-                  <div className="flex items-center gap-1.5 mb-3 min-w-0">
-                    <MapPinIcon />
-                    <span className="text-xs text-[#4A1525]/60 truncate">{comp.location || '\u00A0'}</span>
-                  </div>
-
-                  {/* Description Box */}
-                  {comp.description && (
-                    <div className="mb-3">
-                      <p className="text-xs text-[#4A1525]/60 leading-relaxed line-clamp-3">
-                        {comp.description}
-                      </p>
+                  {adminTab === 'paste' && (
+                    <div>
+                      <textarea value={whatsappInput} onChange={(e) => setWhatsappInput(e.target.value)} rows={5} placeholder="Paste WhatsApp message here..." style={{ width: '100%', border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14, marginBottom: 16, resize: 'vertical' }} />
+                      <button onClick={handleExtract} style={{ background: '#3F1522', color: '#FFF', border: 'none', padding: '12px 24px', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>✨ Extract with AI</button>
+                      
+                      {exData && (
+                        <div style={{ marginTop: 24, borderTop: '1px solid #E6E1DA', paddingTop: 24 }}>
+                          <p style={{ fontSize: 12, color: '#C09E53', fontWeight: 700, marginBottom: 16, letterSpacing: 1 }}>✅ AI EXTRACTED — REVIEW & EDIT</p>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                            <input placeholder="Title" value={exData.title} onChange={(e) => setExData({...exData, title: e.target.value})} style={{ border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14 }} />
+                            <input placeholder="Organizer" value={exData.organizer} onChange={(e) => setExData({...exData, organizer: e.target.value})} style={{ border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14 }} />
+                            <input placeholder="Deadline" value={exData.deadline} onChange={(e) => setExData({...exData, deadline: e.target.value})} style={{ border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14 }} />
+                            <input placeholder="Prize" value={exData.prize} onChange={(e) => setExData({...exData, prize: e.target.value})} style={{ border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14 }} />
+                            <input placeholder="Location" value={exData.location} onChange={(e) => setExData({...exData, location: e.target.value})} style={{ border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14 }} />
+                            <input placeholder="Apply Link" value={exData.applyUrl} onChange={(e) => setExData({...exData, applyUrl: e.target.value})} style={{ border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14 }} />
+                          </div>
+                          <input placeholder="Tags (comma separated)" value={exData.tags.join(', ')} onChange={(e) => setExData({...exData, tags: e.target.value.split(',').map((t: string) => t.trim().toLowerCase())})} style={{ width: '100%', border: '1px solid #E6E1DA', borderRadius: 8, padding: 10, fontSize: 14, marginTop: 16 }} />
+                          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, fontWeight: 600, cursor: 'pointer' }}>
+                            <input type="checkbox" checked={exData.featured} onChange={(e) => setExData({...exData, featured: e.target.checked})} style={{ width: 16, height: 16, accentColor: '#C09E53' }} /> Featured
+                          </label>
+                          <button onClick={handleAddToQueue} style={{ background: '#27AE60', color: '#FFF', border: 'none', padding: '12px 24px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', marginTop: 20 }}>📤 Add to Review Queue</button>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Filterable Tag Row */}
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {comp.tags.map((tag) => (
-                      <span key={tag} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[#4A1525]/5 text-[#4A1525]/60 max-w-full truncate">
-                        <TagIcon /> <span className="truncate">{tag}</span>
-                      </span>
-                    ))}
-                  </div>
+                  {adminTab === 'pending' && (
+                    <div>
+                      {db.filter(c => c.status === 'pending').length === 0 ? <p style={{ textAlign: 'center', color: '#7E6E65', padding: 40 }}>No items pending review</p> : 
+                       db.filter(c => c.status === 'pending').map(c => (
+                        <div key={c.id} style={{ border: '1px solid #E6E1DA', borderRadius: 12, padding: 16, marginBottom: 12, background: '#FAFAFA' }}>
+                          <h4 style={{ fontWeight: 700 }}>{c.title}</h4>
+                          <p style={{ fontSize: 13, color: '#7E6E65', marginBottom: 12 }}>{c.organizer} · {c.prize || 'No prize'}</p>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => handleApprove(c.id)} style={{ background: '#27AE60', color: '#FFF', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>✓ Approve & Post</button>
+                            <button onClick={() => handleReject(c.id)} style={{ background: '#FF5C5C', color: '#FFF', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>✕ Reject</button>
+                          </div>
+                        </div>
+                      ))
+                      }
+                    </div>
+                  )}
+
+                  {adminTab === 'manage' && (
+                    <div>
+                      {db.filter(c => c.status === 'approved').map(c => (
+                        <div key={c.id} style={{ border: '1px solid #E6E1DA', borderRadius: 12, padding: 16, marginBottom: 12, background: '#D4EDDA' }}>
+                          <h4 style={{ fontWeight: 700 }}>{c.title}</h4>
+                          <p style={{ fontSize: 12, color: '#155724' }}>{c.organizer} · {c.featured ? '⭐ Featured' : 'Standard'}</p>
+                          <button onClick={() => handleReject(c.id)} style={{ background: '#FF5C5C', color: '#FFF', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}>🗑️ Remove</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Call To Action Anchor Container */}
-              <div className="p-4 pt-0 w-full">
-                {comp.url ? (
-                  <a
-                    href={comp.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-[0.98]"
-                    style={{ background: "#4A1525", color: "white" }}
-                  >
-                    Apply Now <ExternalLinkIcon />
-                  </a>
-                ) : (
-                  <div className="w-full h-10" />
-                )}
-              </div>
-
+              )}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
-    </main>
+      )}
+    </div>
   );
 }
