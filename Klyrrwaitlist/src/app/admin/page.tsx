@@ -238,7 +238,7 @@ export default function AdminPage() {
       <section style={styles.card}>
         <h2 style={styles.sectionTitle}>Live listings ({items.length})</h2>
         {loadingItems ? (
-          <p>Loading\u2026</p>
+          <p>Loading</p>
         ) : items.length === 0 ? (
           <p style={{ color: "#7E6E65" }}>Nothing published yet.</p>
         ) : (
