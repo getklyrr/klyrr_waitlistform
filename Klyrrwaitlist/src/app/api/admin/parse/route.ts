@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthedRequest } from "@/lib/auth";
 
 // If Google retires this model, swap the name here only.
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.5-flash";
 
 const SYSTEM_PROMPT = `You extract structured competition/hackathon listing data from a raw, messy WhatsApp forward.
 Return ONLY a single JSON object, no markdown fences, no commentary, matching exactly this shape:
