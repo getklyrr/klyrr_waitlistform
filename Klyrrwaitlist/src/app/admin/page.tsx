@@ -28,22 +28,25 @@ const EMPTY_DRAFT: Draft = {
   description: "", tags: [], global: false, featured: false, url: "",
 };
 
+const CATEGORIES = ["Coding", "Design", "Science", "Business", "Arts", "General"];
+const LEVELS = ["Beginner", "Intermediate", "Advanced"];
+const MODES = ["Online", "In-Person", "Hybrid"];
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
 
-  const [rawText, setRawText] = useState("");
-  const [parsing, setParsing] = useState(false);
-  const [parseError, setParseError] = useState("");
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [tagsInput, setTagsInput] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState("");
+  const [publishSuccess, setPublishSuccess] = useState(false);
 
   const [items, setItems] = useState<Competition[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
 
-  // A logged-in session is proven the first time any admin API call succeeds.
   useEffect(() => {
     loadItems(true);
   }, []);
@@ -86,43 +89,44 @@ export default function AdminPage() {
     setAuthed(false);
   }
 
-  async function handleParse() {
-    setParseError("");
-    setParsing(true);
-    setDraft(null);
-    try {
-      const res = await fetch("/api/admin/parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: rawText }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setParseError(data.error || "Parsing failed");
-        return;
-      }
-      setDraft({ ...EMPTY_DRAFT, ...data.result });
-    } catch {
-      setParseError("Network error while parsing");
-    } finally {
-      setParsing(false);
-    }
+  function updateDraft<K extends keyof Draft>(key: K, value: Draft[K]) {
+    setDraft((d) => ({ ...d, [key]: value }));
   }
 
-  async function handlePublish() {
-    if (!draft) return;
+  async function handlePublish(e: React.FormEvent) {
+    e.preventDefault();
+    setPublishError("");
+    setPublishSuccess(false);
+
+    if (!draft.name.trim()) {
+      setPublishError("Competition name is required.");
+      return;
+    }
+
+    const finalDraft: Draft = {
+      ...draft,
+      tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
+    };
+
     setPublishing(true);
     try {
       const res = await fetch("/api/admin/competitions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify(finalDraft),
       });
       if (res.ok) {
-        setDraft(null);
-        setRawText("");
+        setDraft(EMPTY_DRAFT);
+        setTagsInput("");
+        setPublishSuccess(true);
         loadItems();
+        setTimeout(() => setPublishSuccess(false), 3000);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setPublishError(data.error || "Something went wrong publishing this.");
       }
+    } catch {
+      setPublishError("Network error while publishing.");
     } finally {
       setPublishing(false);
     }
@@ -166,73 +170,58 @@ export default function AdminPage() {
         <button onClick={handleLogout} style={styles.logoutBtn}>Log out</button>
       </div>
 
-      {/* PASTE & PARSE */}
+      {/* ADD NEW COMPETITION FORM */}
       <section style={styles.card}>
-        <h2 style={styles.sectionTitle}>1. Paste a WhatsApp message</h2>
-        <textarea
-          value={rawText}
-          onChange={(e) => setRawText(e.target.value)}
-          placeholder="Paste the raw forwarded WhatsApp message here..."
-          style={styles.textarea}
-          rows={8}
-        />
-        <button
-          onClick={handleParse}
-          disabled={parsing || rawText.trim().length === 0}
-          style={styles.primaryBtn}
-        >
-          {parsing ? "Parsing…" : "Parse with AI"}
-        </button>
-        {parseError && <div style={styles.errorText}>{parseError}</div>}
-      </section>
-
-      {/* EDITABLE PREVIEW */}
-      {draft && (
-        <section style={styles.card}>
-          <h2 style={styles.sectionTitle}>2. Review &amp; edit before publishing</h2>
+        <h2 style={styles.sectionTitle}>Add a new competition</h2>
+        <form onSubmit={handlePublish}>
           <div style={styles.formGrid}>
-            <Field label="Name" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} />
-            <Field label="Organizer" value={draft.organizer} onChange={(v) => setDraft({ ...draft, organizer: v })} />
-            <Field label="Category" value={draft.category} onChange={(v) => setDraft({ ...draft, category: v })} />
-            <Field label="Level" value={draft.level} onChange={(v) => setDraft({ ...draft, level: v })} />
-            <Field label="Mode" value={draft.mode} onChange={(v) => setDraft({ ...draft, mode: v })} />
-            <Field label="Deadline" value={draft.deadline} onChange={(v) => setDraft({ ...draft, deadline: v })} />
-            <Field label="Event Date" value={draft.eventDate} onChange={(v) => setDraft({ ...draft, eventDate: v })} />
-            <Field label="Prize" value={draft.prize} onChange={(v) => setDraft({ ...draft, prize: v })} />
-            <Field label="Team Size" value={draft.teamSize} onChange={(v) => setDraft({ ...draft, teamSize: v })} />
-            <Field label="Location" value={draft.location} onChange={(v) => setDraft({ ...draft, location: v })} />
-            <Field label="Apply URL" value={draft.url} onChange={(v) => setDraft({ ...draft, url: v })} />
-            <Field
-              label="Tags (comma separated)"
-              value={draft.tags.join(", ")}
-              onChange={(v) => setDraft({ ...draft, tags: v.split(",").map((t) => t.trim()).filter(Boolean) })}
-            />
+            <Field label="Competition name *" value={draft.name} onChange={(v) => updateDraft("name", v)} placeholder="e.g. Smart India Hackathon 2026" />
+            <Field label="Organized by" value={draft.organizer} onChange={(v) => updateDraft("organizer", v)} placeholder="e.g. Govt. of India / AICTE" />
+
+            <SelectField label="Type / Category" value={draft.category} onChange={(v) => updateDraft("category", v)} options={CATEGORIES} />
+            <SelectField label="Level" value={draft.level} onChange={(v) => updateDraft("level", v)} options={LEVELS} />
+
+            <Field label="Deadline to apply" value={draft.deadline} onChange={(v) => updateDraft("deadline", v)} placeholder="e.g. Jul 30, 2026" />
+            <Field label="Event date" value={draft.eventDate} onChange={(v) => updateDraft("eventDate", v)} placeholder="e.g. Aug 20-21, 2026" />
+
+            <Field label="Prize" value={draft.prize} onChange={(v) => updateDraft("prize", v)} placeholder="e.g. \u20b91,00,000 per team" />
+            <Field label="Team size" value={draft.teamSize} onChange={(v) => updateDraft("teamSize", v)} placeholder="e.g. 2-6 members" />
+
+            <SelectField label="Mode" value={draft.mode} onChange={(v) => updateDraft("mode", v)} options={MODES} />
+            <Field label="Location (type manually)" value={draft.location} onChange={(v) => updateDraft("location", v)} placeholder="e.g. Pan India / Bengaluru / Online" />
+
+            <Field label="Apply link (URL)" value={draft.url} onChange={(v) => updateDraft("url", v)} placeholder="https://..." />
+            <Field label="Tags (comma separated)" value={tagsInput} onChange={setTagsInput} placeholder="e.g. AI/ML, IoT, Social Impact" />
           </div>
-          <label style={styles.textareaLabel}>Description</label>
+
+          <label style={styles.textareaLabel}>About / description</label>
           <textarea
             value={draft.description}
-            onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+            onChange={(e) => updateDraft("description", e.target.value)}
             style={styles.textarea}
-            rows={3}
+            rows={4}
+            placeholder="A couple of sentences describing the opportunity..."
           />
+
           <div style={styles.checkboxRow}>
             <label style={styles.checkboxLabel}>
-              <input type="checkbox" checked={draft.global} onChange={(e) => setDraft({ ...draft, global: e.target.checked })} />
-              Global
+              <input type="checkbox" checked={draft.global} onChange={(e) => updateDraft("global", e.target.checked)} />
+              Global (open outside India)
             </label>
             <label style={styles.checkboxLabel}>
-              <input type="checkbox" checked={draft.featured} onChange={(e) => setDraft({ ...draft, featured: e.target.checked })} />
-              Featured
+              <input type="checkbox" checked={draft.featured} onChange={(e) => updateDraft("featured", e.target.checked)} />
+              Featured (pin to top)
             </label>
           </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={handlePublish} disabled={publishing} style={styles.primaryBtn}>
-              {publishing ? "Publishing…" : "Publish to klyrr.qzz.io/competitions"}
-            </button>
-            <button onClick={() => setDraft(null)} style={styles.secondaryBtn}>Discard</button>
-          </div>
-        </section>
-      )}
+
+          {publishError && <div style={styles.errorText}>{publishError}</div>}
+          {publishSuccess && <div style={styles.successText}>Published to klyrr.qzz.io/competitions \u2713</div>}
+
+          <button type="submit" disabled={publishing} style={styles.primaryBtn}>
+            {publishing ? "Publishing\u2026" : "Publish"}
+          </button>
+        </form>
+      </section>
 
       {/* EXISTING LISTINGS */}
       <section style={styles.card}>
@@ -249,6 +238,7 @@ export default function AdminPage() {
                   <strong>{item.name || "(untitled)"}</strong>
                   <div style={{ fontSize: 12, color: "#7E6E65" }}>
                     {item.organizer} &middot; {item.deadline}
+                    {item.featured && <> &middot; <span style={{ color: "#C09E53" }}>Featured</span></>}
                   </div>
                 </div>
                 <button onClick={() => handleDelete(item.id)} style={styles.deleteBtn}>Delete</button>
@@ -261,11 +251,29 @@ export default function AdminPage() {
   );
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function Field({
+  label, value, onChange, placeholder,
+}: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
       <label style={styles.fieldLabel}>{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} style={styles.input} />
+      <input value={value} onChange={(e) => onChange(e.target.value)} style={styles.input} placeholder={placeholder} />
+    </div>
+  );
+}
+
+function SelectField({
+  label, value, onChange, options,
+}: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+  return (
+    <div>
+      <label style={styles.fieldLabel}>{label}</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)} style={styles.input}>
+        <option value="">Select…</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -281,9 +289,9 @@ const styles: Record<string, React.CSSProperties> = {
   logoutBtn: { background: "none", border: "1px solid #E6E1DA", borderRadius: 8, padding: "8px 14px", cursor: "pointer" },
   card: { background: "#fff", border: "1px solid #E6E1DA", borderRadius: 16, padding: 24, marginBottom: 24 },
   sectionTitle: { fontSize: 16, fontWeight: 700, marginTop: 0, marginBottom: 16 },
-  textarea: { width: "100%", boxSizing: "border-box", border: "1px solid #E6E1DA", borderRadius: 10, padding: 12, fontFamily: "inherit", fontSize: 14, marginBottom: 12, resize: "vertical" },
+  textarea: { width: "100%", boxSizing: "border-box", border: "1px solid #E6E1DA", borderRadius: 10, padding: 12, fontFamily: "inherit", fontSize: 14, marginBottom: 16, resize: "vertical" },
   textareaLabel: { display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "#7E6E65" },
-  input: { width: "100%", boxSizing: "border-box", border: "1px solid #E6E1DA", borderRadius: 8, padding: "10px 12px", fontFamily: "inherit", fontSize: 14 },
+  input: { width: "100%", boxSizing: "border-box", border: "1px solid #E6E1DA", borderRadius: 8, padding: "10px 12px", fontFamily: "inherit", fontSize: 14, background: "#fff" },
   fieldLabel: { display: "block", fontSize: 11, fontWeight: 600, marginBottom: 4, color: "#7E6E65", textTransform: "uppercase", letterSpacing: 0.5 },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 },
   checkboxRow: { display: "flex", gap: 20, marginBottom: 16 },
@@ -292,5 +300,6 @@ const styles: Record<string, React.CSSProperties> = {
   secondaryBtn: { background: "none", border: "1px solid #E6E1DA", borderRadius: 10, padding: "12px 20px", fontWeight: 600, cursor: "pointer" },
   deleteBtn: { background: "#FFE5E5", color: "#D31D1D", border: "none", borderRadius: 8, padding: "8px 14px", fontWeight: 600, cursor: "pointer" },
   listRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", border: "1px solid #E6E1DA", borderRadius: 10 },
-  errorText: { color: "#D31D1D", fontSize: 13, marginBottom: 8 },
+  errorText: { color: "#D31D1D", fontSize: 13, marginBottom: 12 },
+  successText: { color: "#1D8A3D", fontSize: 13, marginBottom: 12, fontWeight: 600 },
 };
